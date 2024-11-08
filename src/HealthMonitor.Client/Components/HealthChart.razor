@@ -1,0 +1,80 @@
+@inject IJSRuntime JS
+
+<div class="bg-white rounded-xl shadow-sm p-6">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold">@Title</h3>
+        <div class="flex space-x-2">
+            @foreach (var days in new[] { 7, 30, 90 })
+            {
+                <button @onclick="() => OnRangeChanged(days)"
+                        class="@GetRangeButtonClass(days)">
+                    @days дней
+                </button>
+            }
+        </div>
+    </div>
+    
+    <div class="relative h-64">
+        <canvas id="@ChartId"></canvas>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public List<HealthMetrics> Data { get; set; } = new();
+    [Parameter] public MetricType Type { get; set; }
+
+    private string ChartId => $"chart_{Type.ToString().ToLower()}";
+    private int selectedRange = 30;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender || Data.Any())
+        {
+            await UpdateChartData();
+        }
+    }
+
+    private string GetRangeButtonClass(int days)
+    {
+        var baseClass = "px-3 py-1 text-sm rounded-lg transition-colors";
+        return days == selectedRange
+            ? $"{baseClass} bg-blue-100 text-blue-700"
+            : $"{baseClass} bg-gray-100 text-gray-700 hover:bg-gray-200";
+    }
+
+    private async Task OnRangeChanged(int days)
+    {
+        selectedRange = days;
+        await UpdateChartData();
+    }
+
+    private async Task UpdateChartData()
+    {
+        var filteredData = Data
+            .Where(m => m.Date >= DateTime.Now.AddDays(-selectedRange))
+            .OrderBy(m => m.Date)
+            .ToList();
+
+        var chartData = new
+        {
+            labels = filteredData.Select(m => m.Date.ToString("dd.MM")).ToArray(),
+            values = filteredData.Select(m => m.Value).ToArray(),
+            label = GetMetricName()
+        };
+
+        await JS.InvokeVoidAsync("updateChart", ChartId, chartData);
+    }
+
+    private string GetMetricName() => Type switch
+    {
+        MetricType.Height => "Рост (см)",
+        MetricType.Weight => "Вес (кг)",
+        MetricType.BloodPressure => "Давление (мм.рт.ст)",
+        MetricType.HeartRate => "Пульс (уд/мин)",
+        MetricType.Temperature => "Температура (°C)",
+        MetricType.BloodSugar => "Сахар крови (ммоль/л)",
+        MetricType.Oxygen => "Кислород (%)",
+        _ => Type.ToString()
+    };
+}

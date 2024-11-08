@@ -1,0 +1,101 @@
+<div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:border-blue-200 transition-colors cursor-pointer"
+     @onclick="OnClick">
+    <div class="flex items-center justify-between mb-4">
+        <div>
+            <h3 class="text-sm font-medium text-gray-500">@Title</h3>
+            <div class="flex items-baseline mt-1">
+                <span class="text-2xl font-bold @ValueColorClass">@Value</span>
+                @if (!string.IsNullOrEmpty(Unit))
+                {
+                    <span class="ml-1 text-gray-600 text-sm">@Unit</span>
+                }
+            </div>
+        </div>
+        <div class="@IconBackgroundClass p-3 rounded-lg">
+            <span class="material-icons @IconColorClass">@Icon</span>
+        </div>
+    </div>
+
+    <div class="flex items-center justify-between">
+        @if (!string.IsNullOrEmpty(Trend))
+        {
+            <div class="flex items-center">
+                <span class="material-icons text-sm @GetTrendColor()">@GetTrendIcon()</span>
+                <span class="text-sm ml-1 @GetTrendColor()">@GetTrendText()</span>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(NormalRange))
+        {
+            <div class="text-xs text-gray-500">
+                Норма: @NormalRange
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public string? Unit { get; set; }
+    [Parameter] public string Icon { get; set; } = "speed";
+    [Parameter] public string? Trend { get; set; }
+    [Parameter] public string? NormalRange { get; set; }
+    [Parameter] public MetricType Type { get; set; }
+    [Parameter] public EventCallback OnClick { get; set; }
+
+    private string IconBackgroundClass => Type switch
+    {
+        MetricType.Height => "bg-blue-50",
+        MetricType.Weight => "bg-green-50",
+        MetricType.BloodPressure => "bg-red-50",
+        MetricType.HeartRate => "bg-purple-50",
+        MetricType.Temperature => "bg-orange-50",
+        MetricType.BloodSugar => "bg-yellow-50",
+        MetricType.Oxygen => "bg-indigo-50",
+        _ => "bg-gray-50"
+    };
+
+    private string IconColorClass => Type switch
+    {
+        MetricType.Height => "text-blue-600",
+        MetricType.Weight => "text-green-600",
+        MetricType.BloodPressure => "text-red-600",
+        MetricType.HeartRate => "text-purple-600",
+        MetricType.Temperature => "text-orange-600",
+        MetricType.BloodSugar => "text-yellow-600",
+        MetricType.Oxygen => "text-indigo-600",
+        _ => "text-gray-600"
+    };
+
+    private string ValueColorClass => Type switch
+    {
+        MetricType.Temperature when double.TryParse(Value, out var temp) && temp > 37.5 => "text-red-600",
+        MetricType.Temperature when double.TryParse(Value, out var temp) && temp < 36 => "text-blue-600",
+        MetricType.Oxygen when double.TryParse(Value, out var oxygen) && oxygen < 95 => "text-red-600",
+        MetricType.BloodPressure when double.TryParse(Value, out var pressure) && pressure > 140 => "text-red-600",
+        MetricType.BloodPressure when double.TryParse(Value, out var pressure) && pressure < 90 => "text-blue-600",
+        _ => "text-gray-900"
+    };
+
+    private string GetTrendColor() => Trend switch
+    {
+        "up" => "text-green-500",
+        "down" => "text-red-500",
+        _ => "text-gray-500"
+    };
+
+    private string GetTrendIcon() => Trend switch
+    {
+        "up" => "trending_up",
+        "down" => "trending_down",
+        _ => "trending_flat"
+    };
+
+    private string GetTrendText() => Trend switch
+    {
+        "up" => "Повышение",
+        "down" => "Понижение",
+        _ => "Стабильно"
+    };
+}

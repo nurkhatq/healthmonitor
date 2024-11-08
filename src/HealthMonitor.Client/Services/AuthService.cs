@@ -1,55 +1,82 @@
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using HealthMonitor.Shared.Models.DTOs.Auth;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using HealthMonitor.Shared.Models.DTOs.Auth;
 
 namespace HealthMonitor.Client.Services;
-
-public interface IAuthService
-{
-    Task<bool> LoginAsync(string email, string password);
-    Task LogoutAsync();
-    Task<string?> GetTokenAsync();
-}
 
 public class AuthService : IAuthService
 {
     private readonly HttpClient _httpClient;
     private readonly AuthenticationStateProvider _authStateProvider;
-    private readonly ILocalStorageService _localStorage;
-    private const string TOKEN_KEY = "authToken";
+    private readonly NavigationManager _navigationManager;
 
-    public AuthService(HttpClient httpClient, AuthenticationStateProvider authStateProvider, ILocalStorageService localStorage)
+    public AuthService(
+        HttpClient httpClient, 
+        AuthenticationStateProvider authStateProvider,
+        NavigationManager navigationManager)
     {
         _httpClient = httpClient;
         _authStateProvider = authStateProvider;
-        _localStorage = localStorage;
+        _navigationManager = navigationManager;
     }
 
     public async Task<bool> LoginAsync(string email, string password)
     {
-        var response = await _httpClient.PostAsJsonAsync("api/auth/login", new { email, password });
-        if (!response.IsSuccessStatusCode) return false;
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/auth/login", new { email, password });
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                if (result?.Token != null)
+                {
+                    ((CustomAuthStateProvider)_authStateProvider).NotifyUserAuthentication(result.Token);
+                    return true;
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
 
-        var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
-        if (result?.Token == null) return false;
-
-        await _localStorage.SetItemAsync(TOKEN_KEY, result.Token);
-        _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", result.Token);
-        ((CustomAuthStateProvider)_authStateProvider).NotifyUserAuthentication(result.Token);
-        
-        return true;
+    public async Task<bool> RegisterAsync(RegisterRequest request)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsJsonAsync("api/auth/register", request);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                if (result?.Token != null)
+                {
+                    ((CustomAuthStateProvider)_authStateProvider).NotifyUserAuthentication(result.Token);
+                    return true;
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public async Task LogoutAsync()
     {
-        await _localStorage.RemoveItemAsync(TOKEN_KEY);
-        _httpClient.DefaultRequestHeaders.Authorization = null;
-        ((CustomAuthStateProvider)_authStateProvider).NotifyUserLogout();
-    }
-
-    public async Task<string?> GetTokenAsync()
-    {
-        return await _localStorage.GetItemAsync<string>(TOKEN_KEY);
+        try
+        {
+            ((CustomAuthStateProvider)_authStateProvider).NotifyUserLogout();
+            _navigationManager.NavigateTo("/login", true);
+        }
+        catch
+        {
+            // Обработка ошибок
+        }
     }
 }

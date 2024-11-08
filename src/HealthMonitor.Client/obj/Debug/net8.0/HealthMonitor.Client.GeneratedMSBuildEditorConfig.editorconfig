@@ -26,8 +26,24 @@ build_property._RazorSourceGeneratorDebug =
 build_metadata.AdditionalFiles.TargetPath = QXBwLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
+[D:/csharp/src/HealthMonitor.Client/Components/HealthChart.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xIZWFsdGhDaGFydC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/csharp/src/HealthMonitor.Client/Components/MetricCard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xNZXRyaWNDYXJkLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/csharp/src/HealthMonitor.Client/Components/StatCard.razor]
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50c1xTdGF0Q2FyZC5yYXpvcg==
+build_metadata.AdditionalFiles.CssScope = 
+
 [D:/csharp/src/HealthMonitor.Client/Pages/Dashboard.razor]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRGFzaGJvYXJkLnJhem9y
+build_metadata.AdditionalFiles.CssScope = 
+
+[D:/csharp/src/HealthMonitor.Client/Pages/Health.razor]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSGVhbHRoLnJhem9y
 build_metadata.AdditionalFiles.CssScope = 
 
 [D:/csharp/src/HealthMonitor.Client/Pages/LogActivity.razor]

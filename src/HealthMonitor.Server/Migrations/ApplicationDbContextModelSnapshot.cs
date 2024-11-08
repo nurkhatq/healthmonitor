@@ -53,6 +53,39 @@ namespace HealthMonitor.Server.Migrations
                     b.ToTable("Activities");
                 });
 
+            modelBuilder.Entity("HealthMonitor.Shared.Models.HealthMetrics", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Unit")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<double>("Value")
+                        .HasColumnType("float");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("HealthMetrics");
+                });
+
             modelBuilder.Entity("HealthMonitor.Shared.Models.Sleep", b =>
                 {
                     b.Property<int>("Id")
@@ -90,7 +123,8 @@ namespace HealthMonitor.Server.Migrations
 
                     b.Property<string>("Email")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("PasswordHash")
                         .IsRequired()
@@ -113,6 +147,15 @@ namespace HealthMonitor.Server.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("HealthMonitor.Shared.Models.HealthMetrics", b =>
+                {
+                    b.HasOne("HealthMonitor.Shared.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("HealthMonitor.Shared.Models.Sleep", b =>

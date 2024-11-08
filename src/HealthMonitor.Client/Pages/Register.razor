@@ -1,98 +1,68 @@
 @page "/register"
-@inject HttpClient Http
-@inject NavigationManager NavigationManager
 @inject IAuthService AuthService
+@inject NavigationManager NavigationManager
 
 <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
     <div class="max-w-md w-full">
-        <!-- Logo/Brand -->
         <div class="text-center mb-8">
             <h1 class="text-4xl font-bold text-gray-900">Health Monitor</h1>
-            <p class="mt-2 text-gray-600">Create your account to get started.</p>
+            <p class="mt-2 text-gray-600">Создайте аккаунт для начала работы</p>
         </div>
 
-        <!-- Register Card -->
         <div class="bg-white rounded-xl shadow-lg p-8">
             <EditForm Model="@registerModel" OnValidSubmit="HandleRegistration">
                 <DataAnnotationsValidator />
 
                 <div class="space-y-6">
-                    <!-- Email Field -->
                     <div>
                         <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
-                        <div class="mt-1 relative rounded-md shadow-sm">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <span class="material-icons text-gray-400 text-sm">mail</span>
-                            </div>
-                            <InputText id="email" 
-                                     @bind-Value="registerModel.Email"
-                                     class="block w-full pl-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                                     placeholder="you@example.com" />
-                        </div>
-                        <ValidationMessage For="@(() => registerModel.Email)" class="mt-1 text-sm text-red-600" />
+                        <InputText id="email" 
+                                 @bind-Value="registerModel.Email"
+                                 class="mt-1 block w-full rounded-lg border-gray-300" />
+                        <ValidationMessage For="@(() => registerModel.Email)" class="text-sm text-red-600" />
                     </div>
 
-                    <!-- Password Field -->
                     <div>
-                        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                        <div class="mt-1 relative rounded-md shadow-sm">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <span class="material-icons text-gray-400 text-sm">lock</span>
-                            </div>
-                            <InputText type="password" 
-                                     id="password" 
-                                     @bind-Value="registerModel.Password"
-                                     class="block w-full pl-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                                     placeholder="••••••••" />
-                        </div>
-                        <ValidationMessage For="@(() => registerModel.Password)" class="mt-1 text-sm text-red-600" />
-                        <p class="mt-1 text-xs text-gray-500">Minimum 6 characters</p>
+                        <label for="password" class="block text-sm font-medium text-gray-700">Пароль</label>
+                        <InputText type="password" 
+                                 id="password" 
+                                 @bind-Value="registerModel.Password"
+                                 class="mt-1 block w-full rounded-lg border-gray-300" />
+                        <ValidationMessage For="@(() => registerModel.Password)" class="text-sm text-red-600" />
                     </div>
 
-                    <!-- Confirm Password Field -->
                     <div>
-                        <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Confirm Password</label>
-                        <div class="mt-1 relative rounded-md shadow-sm">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <span class="material-icons text-gray-400 text-sm">lock_clock</span>
-                            </div>
-                            <InputText type="password" 
-                                     id="confirmPassword" 
-                                     @bind-Value="registerModel.ConfirmPassword"
-                                     class="block w-full pl-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-                                     placeholder="••••••••" />
-                        </div>
-                        <ValidationMessage For="@(() => registerModel.ConfirmPassword)" class="mt-1 text-sm text-red-600" />
+                        <label for="confirmPassword" class="block text-sm font-medium text-gray-700">Подтверждение пароля</label>
+                        <InputText type="password" 
+                                 id="confirmPassword" 
+                                 @bind-Value="registerModel.ConfirmPassword"
+                                 class="mt-1 block w-full rounded-lg border-gray-300" />
+                        <ValidationMessage For="@(() => registerModel.ConfirmPassword)" class="text-sm text-red-600" />
                     </div>
 
                     @if (!string.IsNullOrEmpty(errorMessage))
                     {
-                        <div class="bg-red-50 text-red-800 rounded-lg p-4 flex items-center">
-                            <span class="material-icons text-red-400 mr-2">error</span>
-                            <span class="text-sm">@errorMessage</span>
+                        <div class="bg-red-50 text-red-800 rounded-lg p-4">
+                            @errorMessage
                         </div>
                     }
 
-                    <!-- Terms and Conditions -->
-                    <div class="flex items-center">
-                        <InputCheckbox id="terms" class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded" />
-                        <label for="terms" class="ml-2 block text-sm text-gray-700">
-                            I accept the <a href="#" class="text-blue-600 hover:text-blue-800">Terms and Conditions</a>
-                        </label>
-                    </div>
-
-                    <!-- Submit Button -->
                     <button type="submit" 
-                            class="w-full py-3 px-4 text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center">
-                        <span class="material-icons mr-2">person_add</span>
-                        Create Account
+                            disabled="@isProcessing"
+                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                        @if (isProcessing)
+                        {
+                            <span class="inline-block animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></span>
+                        }
+                        Создать аккаунт
                     </button>
 
-                    <!-- Login Link -->
-                    <p class="text-center text-sm text-gray-600">
-                        Already have an account?
-                        <a href="login" class="text-blue-600 hover:text-blue-800 font-medium">Sign in instead</a>
-                    </p>
+                    <div class="text-center text-sm">
+                        <span class="text-gray-600">Уже есть аккаунт?</span>
+                        <a href="login" class="ml-1 font-medium text-blue-600 hover:text-blue-500">
+                            Войти
+                        </a>
+                    </div>
                 </div>
             </EditForm>
         </div>
@@ -102,32 +72,32 @@
 @code {
     private RegisterRequest registerModel = new();
     private string errorMessage = string.Empty;
-    private bool acceptTerms = false;
+    private bool isProcessing = false;
 
     private async Task HandleRegistration()
     {
         try
         {
-            var response = await Http.PostAsJsonAsync("api/auth/register", registerModel);
-            
-            if (response.IsSuccessStatusCode)
+            isProcessing = true;
+            errorMessage = string.Empty;
+
+            var result = await AuthService.RegisterAsync(registerModel);
+            if (result)
             {
-                var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
-                if (result != null)
-                {
-                    await AuthService.LoginAsync(registerModel.Email, registerModel.Password);
-                    NavigationManager.NavigateTo("/");
-                }
+                NavigationManager.NavigateTo("/");
             }
             else
             {
-                var error = await response.Content.ReadAsStringAsync();
-                errorMessage = error ?? "Registration failed";
+                errorMessage = "Не удалось создать аккаунт. Попробуйте другой email.";
             }
         }
         catch
         {
-            errorMessage = "An error occurred during registration";
+            errorMessage = "Произошла ошибка при регистрации";
+        }
+        finally
+        {
+            isProcessing = false;
         }
     }
 }

@@ -1,0 +1,12 @@
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string Value { get; set; } = "";
+    [Parameter] public string? Unit { get; set; }
+}
+
+<div class="bg-gray-50 rounded-lg p-4">
+    <div class="text-sm font-medium text-gray-500">@Title</div>
+    <div class="mt-1 text-xl font-semibold text-gray-900">
+        @Value@(Unit != null ? $" {Unit}" : "")
+    </div>
+</div>

@@ -139,3 +139,4 @@ D:\csharp\src\HealthMonitor.Server\obj\Debug\net8.0\refint\HealthMonitor.Server.
 D:\csharp\src\HealthMonitor.Server\obj\Debug\net8.0\HealthMonitor.Server.pdb
 D:\csharp\src\HealthMonitor.Server\obj\Debug\net8.0\HealthMonitor.Server.genruntimeconfig.cache
 D:\csharp\src\HealthMonitor.Server\obj\Debug\net8.0\ref\HealthMonitor.Server.dll
+D:\csharp\src\HealthMonitor.Server\obj\Debug\net8.0\HealthMonitor.Server.sourcelink.json
