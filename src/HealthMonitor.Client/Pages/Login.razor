@@ -1,0 +1,108 @@
+@page "/login"
+@inject IAuthService AuthService
+@inject NavigationManager NavigationManager
+
+<div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center p-4">
+    <div class="max-w-md w-full">
+        <!-- Logo/Brand -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-gray-900">Health Monitor</h1>
+            <p class="mt-2 text-gray-600">Welcome back! Please sign in to continue.</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="bg-white rounded-xl shadow-lg p-8">
+            <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+                <DataAnnotationsValidator />
+
+                <div class="space-y-6">
+                    <!-- Email Field -->
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="material-icons text-gray-400 text-sm">mail</span>
+                            </div>
+                            <InputText id="email" 
+                                     @bind-Value="loginModel.Email"
+                                     class="block w-full pl-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                     placeholder="you@example.com" />
+                        </div>
+                        <ValidationMessage For="@(() => loginModel.Email)" class="mt-1 text-sm text-red-600" />
+                    </div>
+
+                    <!-- Password Field -->
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="material-icons text-gray-400 text-sm">lock</span>
+                            </div>
+                            <InputText type="password" 
+                                     id="password" 
+                                     @bind-Value="loginModel.Password"
+                                     class="block w-full pl-10 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                     placeholder="••••••••" />
+                        </div>
+                        <ValidationMessage For="@(() => loginModel.Password)" class="mt-1 text-sm text-red-600" />
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="bg-red-50 text-red-800 rounded-lg p-4 flex items-center">
+                            <span class="material-icons text-red-400 mr-2">error</span>
+                            <span class="text-sm">@errorMessage</span>
+                        </div>
+                    }
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="w-full py-3 px-4 text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors duration-200 flex items-center justify-center">
+                        <span class="material-icons mr-2">login</span>
+                        Sign In
+                    </button>
+
+                    <!-- Register Link -->
+                    <p class="text-center text-sm text-gray-600">
+                        Don't have an account?
+                        <a href="register" class="text-blue-600 hover:text-blue-800 font-medium">Create one now</a>
+                    </p>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private class LoginModel
+    {
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email address")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Password is required")]
+        public string Password { get; set; } = string.Empty;
+    }
+
+    private LoginModel loginModel = new();
+    private string errorMessage = string.Empty;
+
+    private async Task HandleLogin()
+    {
+        try
+        {
+            var result = await AuthService.LoginAsync(loginModel.Email, loginModel.Password);
+            if (result)
+            {
+                NavigationManager.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = "Invalid email or password";
+            }
+        }
+        catch
+        {
+            errorMessage = "An error occurred during login";
+        }
+    }
+}

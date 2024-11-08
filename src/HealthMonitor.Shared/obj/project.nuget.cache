@@ -1,0 +1,10 @@
+{
+  "version": 2,
+  "dgSpecHash": "AYqjPnOTWAA=",
+  "success": true,
+  "projectFilePath": "D:\\csharp\\src\\HealthMonitor.Shared\\HealthMonitor.Shared.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Imang\\.nuget\\packages\\system.componentmodel.annotations\\5.0.0\\system.componentmodel.annotations.5.0.0.nupkg.sha512"
+  ],
+  "logs": []
+}

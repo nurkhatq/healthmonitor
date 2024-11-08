@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "lsgSS02uk+YBMraeRgfkG88dAYzfGLRLaprkjK+T0mM=",
+  "Source": "HealthMonitor.Server",
+  "BasePath": "_content/HealthMonitor.Server",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}

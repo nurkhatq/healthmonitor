@@ -1,0 +1,11 @@
+D:\csharp\src\HealthMonitor.Shared\bin\Debug\net8.0\HealthMonitor.Shared.deps.json
+D:\csharp\src\HealthMonitor.Shared\bin\Debug\net8.0\HealthMonitor.Shared.dll
+D:\csharp\src\HealthMonitor.Shared\bin\Debug\net8.0\HealthMonitor.Shared.pdb
+D:\csharp\src\HealthMonitor.Shared\obj\Debug\net8.0\HealthMonitor.Shared.GeneratedMSBuildEditorConfig.editorconfig
+D:\csharp\src\HealthMonitor.Shared\obj\Debug\net8.0\HealthMonitor.Shared.AssemblyInfoInputs.cache
+D:\csharp\src\HealthMonitor.Shared\obj\Debug\net8.0\HealthMonitor.Shared.AssemblyInfo.cs
+D:\csharp\src\HealthMonitor.Shared\obj\Debug\net8.0\HealthMonitor.Shared.csproj.CoreCompileInputs.cache
+D:\csharp\src\HealthMonitor.Shared\obj\Debug\net8.0\HealthMonitor.Shared.dll
+D:\csharp\src\HealthMonitor.Shared\obj\Debug\net8.0\refint\HealthMonitor.Shared.dll
+D:\csharp\src\HealthMonitor.Shared\obj\Debug\net8.0\HealthMonitor.Shared.pdb
+D:\csharp\src\HealthMonitor.Shared\obj\Debug\net8.0\ref\HealthMonitor.Shared.dll

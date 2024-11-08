@@ -1,0 +1,84 @@
+@page "/activity"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Log Activity</PageTitle>
+
+<div class="max-w-xl mx-auto">
+    <h2 class="text-2xl font-bold mb-6">Log Activity</h2>
+
+    <EditForm Model="@activity" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+
+        <div class="mb-4">
+            <label for="type" class="block mb-2">Activity Type</label>
+            <InputText id="type" @bind-Value="activity.Type" class="w-full p-2 border rounded" />
+            <ValidationMessage For="@(() => activity.Type)" />
+        </div>
+
+        <div class="mb-4">
+            <label for="duration" class="block mb-2">Duration (minutes)</label>
+            <InputNumber id="duration" @bind-Value="activity.Duration" class="w-full p-2 border rounded" />
+            <ValidationMessage For="@(() => activity.Duration)" />
+        </div>
+
+        <div class="mb-4">
+            <label for="calories" class="block mb-2">Calories Burned</label>
+            <InputNumber id="calories" @bind-Value="activity.CaloriesBurned" class="w-full p-2 border rounded" />
+            <ValidationMessage For="@(() => activity.CaloriesBurned)" />
+        </div>
+
+        <div class="mb-6">
+            <label for="date" class="block mb-2">Date</label>
+            <InputDate id="date" @bind-Value="activity.Date" class="w-full p-2 border rounded" />
+            <ValidationMessage For="@(() => activity.Date)" />
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="mb-4 text-red-500">
+                @errorMessage
+            </div>
+        }
+
+        <div class="flex gap-4">
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                Save Activity
+            </button>
+            <button type="button" class="px-4 py-2 border rounded hover:bg-gray-100" @onclick="Cancel">
+                Cancel
+            </button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private Activity activity = new() { Date = DateTime.Now };
+    private string errorMessage = string.Empty;
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/activity", activity);
+            if (response.IsSuccessStatusCode)
+            {
+                NavigationManager.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = "Failed to save activity";
+            }
+        }
+        catch
+        {
+            errorMessage = "An error occurred while saving";
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

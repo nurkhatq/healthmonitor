@@ -1,0 +1,83 @@
+@page "/sleep"
+@attribute [Authorize]
+@inject HttpClient Http
+@inject NavigationManager NavigationManager
+
+<PageTitle>Log Sleep</PageTitle>
+
+<div class="max-w-xl mx-auto">
+    <h2 class="text-2xl font-bold mb-6">Log Sleep</h2>
+
+    <EditForm Model="@sleep" OnValidSubmit="HandleSubmit">
+        <DataAnnotationsValidator />
+
+        <div class="mb-4">
+            <label for="startTime" class="block mb-2">Start Time</label>
+            <InputDate id="startTime" @bind-Value="sleep.StartTime" class="w-full p-2 border rounded" />
+            <ValidationMessage For="@(() => sleep.StartTime)" />
+        </div>
+
+        <div class="mb-4">
+            <label for="endTime" class="block mb-2">End Time</label>
+            <InputDate id="endTime" @bind-Value="sleep.EndTime" class="w-full p-2 border rounded" />
+            <ValidationMessage For="@(() => sleep.EndTime)" />
+        </div>
+
+        <div class="mb-6">
+            <label for="quality" class="block mb-2">Sleep Quality (1-5)</label>
+            <InputNumber id="quality" @bind-Value="sleep.Quality" class="w-full p-2 border rounded" />
+            <ValidationMessage For="@(() => sleep.Quality)" />
+        </div>
+
+        @if (!string.IsNullOrEmpty(errorMessage))
+        {
+            <div class="mb-4 text-red-500">
+                @errorMessage
+            </div>
+        }
+
+        <div class="flex gap-4">
+            <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                Save Sleep Record
+            </button>
+            <button type="button" class="px-4 py-2 border rounded hover:bg-gray-100" @onclick="Cancel">
+                Cancel
+            </button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    private Sleep sleep = new()
+    {
+        StartTime = DateTime.Now.Date.AddHours(22),
+        EndTime = DateTime.Now.Date.AddDays(1).AddHours(6),
+        Quality = 3
+    };
+    private string errorMessage = string.Empty;
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/sleep", sleep);
+            if (response.IsSuccessStatusCode)
+            {
+                NavigationManager.NavigateTo("/");
+            }
+            else
+            {
+                errorMessage = "Failed to save sleep record";
+            }
+        }
+        catch
+        {
+            errorMessage = "An error occurred while saving";
+        }
+    }
+
+    private void Cancel()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

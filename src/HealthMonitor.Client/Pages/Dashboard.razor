@@ -1,0 +1,166 @@
+@page "/"
+@attribute [Authorize]
+@inject HttpClient Http
+
+<div class="p-6 space-y-8">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+        <div class="text-sm text-gray-500">
+            @DateTime.Now.ToString("dddd, MMMM d, yyyy")
+        </div>
+    </div>
+
+    <!-- Stats Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Weekly Calories Card -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Weekly Calories</p>
+                    <p class="text-2xl font-semibold text-gray-900 mt-1">
+                        @(dashboardStats.TotalCaloriesThisWeek > 0 ? dashboardStats.TotalCaloriesThisWeek.ToString("N0") : "No data")
+                    </p>
+                </div>
+                <div class="p-3 bg-blue-50 rounded-lg">
+                    <span class="material-icons text-blue-600">local_fire_department</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Average Sleep Card -->
+        <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm font-medium text-gray-500">Average Sleep</p>
+                    <p class="text-2xl font-semibold text-gray-900 mt-1">
+                        @(dashboardStats.AverageSleepHours > 0 ? $"{dashboardStats.AverageSleepHours:F1} hrs" : "No data")
+                    </p>
+                </div>
+                <div class="p-3 bg-indigo-50 rounded-lg">
+                    <span class="material-icons text-indigo-600">bedtime</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activities -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-900">Recent Activities</h2>
+                <a href="/activity" class="text-sm text-blue-600 hover:text-blue-700">Log new activity</a>
+            </div>
+        </div>
+        <div class="p-6">
+            @if (dashboardStats.RecentActivities?.Any() == true)
+            {
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Calories</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @foreach (var activity in dashboardStats.RecentActivities)
+                            {
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">@activity.Type</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">@activity.Duration min</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">@activity.CaloriesBurned.ToString("N0")</td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">@activity.Date.ToString("MMM d, yyyy")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-12">
+                    <span class="material-icons text-gray-400 text-4xl mb-4">fitness_center</span>
+                    <p class="text-gray-500">No activities recorded yet</p>
+                    <a href="/activity" class="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Log your first activity
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Recent Sleep -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+        <div class="px-6 py-4 border-b border-gray-100">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-900">Sleep Records</h2>
+                <a href="/sleep" class="text-sm text-blue-600 hover:text-blue-700">Log new sleep</a>
+            </div>
+        </div>
+        <div class="p-6">
+            @if (dashboardStats.RecentSleepRecords?.Any() == true)
+            {
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Time</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">End Time</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duration</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Quality</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @foreach (var sleep in dashboardStats.RecentSleepRecords)
+                            {
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        @sleep.StartTime.ToString("MMM d, h:mm tt")
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        @sleep.EndTime.ToString("MMM d, h:mm tt")
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        @((sleep.EndTime - sleep.StartTime).TotalHours.ToString("F1")) hrs
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-yellow-500">
+                                        @(new string('★', sleep.Quality))@(new string('☆', 5 - sleep.Quality))
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-12">
+                    <span class="material-icons text-gray-400 text-4xl mb-4">bedtime</span>
+                    <p class="text-gray-500">No sleep records yet</p>
+                    <a href="/sleep" class="inline-block mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Log your first sleep
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private DashboardStats dashboardStats = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            dashboardStats = await Http.GetFromJsonAsync<DashboardStats>("api/dashboard") ?? new();
+        }
+        catch
+        {
+            // Handle error - perhaps show a notification
+        }
+    }
+}
