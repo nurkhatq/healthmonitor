@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
 using HealthMonitor.Client;
 using HealthMonitor.Client.Services;
 
@@ -12,9 +14,10 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddScoped<ILocalStorageService, LocalStorageService>();
 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<CustomAuthorizationMessageHandler>();
+builder.Services.AddScoped<IHealthService, HealthService>();
 
 // Configure HttpClient
+builder.Services.AddScoped<CustomAuthorizationMessageHandler>();
 builder.Services.AddScoped(sp => 
 {
     var handler = sp.GetRequiredService<CustomAuthorizationMessageHandler>();

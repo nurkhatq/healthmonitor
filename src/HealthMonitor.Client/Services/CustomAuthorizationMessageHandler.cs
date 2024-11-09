@@ -5,31 +5,22 @@ namespace HealthMonitor.Client.Services;
 
 public class CustomAuthorizationMessageHandler : DelegatingHandler
 {
-    private readonly ILocalStorageService _localStorage;
-    private readonly NavigationManager _navigationManager;
+    private readonly IAuthService _authService;
 
-    public CustomAuthorizationMessageHandler(ILocalStorageService localStorage, NavigationManager navigationManager)
+    public CustomAuthorizationMessageHandler(IAuthService authService)
     {
-        _localStorage = localStorage;
-        _navigationManager = navigationManager;
+        _authService = authService;
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        var token = await _localStorage.GetItemAsync<string>("authToken");
+        var token = await _authService.GetTokenAsync();
         
         if (!string.IsNullOrEmpty(token))
         {
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         }
 
-        var response = await base.SendAsync(request, cancellationToken);
-
-        if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
-        {
-            _navigationManager.NavigateTo("/login");
-        }
-
-        return response;
+        return await base.SendAsync(request, cancellationToken);
     }
 }

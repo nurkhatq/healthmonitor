@@ -1,27 +1,27 @@
 @page "/health"
-@attribute [Authorize]
-@inject HttpClient Http
+@inject IHealthService HealthService
 @inject IJSRuntime JS
+@attribute [Authorize]
 
 <div class="min-h-screen bg-gray-50 p-4 md:p-6">
     <div class="max-w-7xl mx-auto">
         <!-- Header -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
             <div>
-                <h1 class="text-2xl font-bold text-gray-900">Здоровье</h1>
-                <p class="text-sm text-gray-500">Отслеживайте ваши показатели здоровья</p>
+                <h1 class="text-2xl font-bold text-gray-900">Health</h1>
+                <p class="text-sm text-gray-500">Track your health metrics</p>
             </div>
 
             <div class="flex flex-col sm:flex-row gap-2">
                 <button @onclick="ExportData"
                         class="flex items-center justify-center px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50">
                     <span class="material-icons mr-2 text-gray-500">download</span>
-                    Экспорт
+                    Export
                 </button>
                 <button @onclick="ShowAddMetricModal"
                         class="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
                     <span class="material-icons mr-2">add</span>
-                    Добавить измерение
+                    Add Measurement
                 </button>
             </div>
         </div>
@@ -61,7 +61,7 @@
                                 <span class="text-sm text-gray-500">@GetTrendText(GetTrend(type))</span>
                             </div>
                             <span class="text-xs text-gray-500">
-                                Норма: @GetNormalRange(type)
+                                Range: @GetNormalRange(type)
                             </span>
                         </div>
                     </div>
@@ -72,13 +72,13 @@
             <div class="mt-6 bg-white rounded-xl shadow-sm">
                 <div class="p-4 border-b border-gray-100">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <h2 class="text-lg font-semibold">Последние измерения</h2>
+                        <h2 class="text-lg font-semibold">Recent Measurements</h2>
                         <div class="flex flex-wrap gap-2">
                             @foreach (var days in new[] { 7, 30, 90 })
                             {
                                 <button @onclick="() => filterDays = days"
                                         class="@GetFilterButtonClass(days) flex-1 sm:flex-none">
-                                    @days дней
+                                    @days days
                                 </button>
                             }
                         </div>
@@ -86,123 +86,56 @@
                 </div>
 
                 <div class="overflow-x-auto">
-                    <div class="min-w-full divide-y divide-gray-200">
-                        <div class="bg-gray-50">
-                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 text-xs font-medium text-gray-500 uppercase">
-                                <div>Дата</div>
-                                <div>Показатель</div>
-                                <div>Значение</div>
-                                <div class="hidden sm:block">Заметки</div>
-                            </div>
-                        </div>
-                        <div class="divide-y divide-gray-200 bg-white">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metric</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
                             @foreach (var metric in GetFilteredMetrics())
                             {
-                                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 text-sm hover:bg-gray-50">
-                                    <div class="text-gray-900">
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                         @metric.Date.ToLocalTime().ToString("g")
-                                    </div>
-                                    <div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
                                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium @GetMetricBadgeClass(metric.Type)">
                                             @GetMetricName(metric.Type)
                                         </span>
-                                    </div>
-                                    <div class="@GetValueColorClass(metric)">
-                                        @metric.Value @metric.Unit
-                                    </div>
-                                    <div class="hidden sm:block text-gray-500 truncate">
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm">
+                                        <span class="@GetValueColorClass(metric)">
+                                            @metric.Value @metric.Unit
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
                                         @metric.Notes
-                                    </div>
-                                </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                        <button @onclick="() => DeleteMetric(metric.Id)"
+                                                class="text-red-600 hover:text-red-900">
+                                            <span class="material-icons">delete</span>
+                                        </button>
+                                    </td>
+                                </tr>
                             }
-                        </div>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         }
     </div>
 </div>
 
-<!-- Добавить измерение модальное окно -->
-@if (showAddMetricModal)
-{
-    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
-        <div class="bg-white rounded-xl max-w-md w-full p-6">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-lg font-semibold">Добавить измерение</h3>
-                <button @onclick="() => showAddMetricModal = false"
-                        class="text-gray-400 hover:text-gray-600">
-                    <span class="material-icons">close</span>
-                </button>
-            </div>
-
-            <EditForm Model="@newMetric" OnValidSubmit="HandleAddMetric">
-                <DataAnnotationsValidator />
-
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Тип показателя</label>
-                        <InputSelect @bind-Value="newMetric.Type"
-                                   class="mt-1 block w-full rounded-lg border-gray-300">
-                            @foreach (MetricType type in Enum.GetValues(typeof(MetricType)))
-                            {
-                                <option value="@type">@GetMetricName(type)</option>
-                            }
-                        </InputSelect>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">
-                            Значение
-                            @if (!string.IsNullOrEmpty(GetMetricUnit(newMetric.Type)))
-                            {
-                                <span class="text-gray-500">
-                                    (@GetMetricUnit(newMetric.Type))
-                                </span>
-                            }
-                        </label>
-                        <InputNumber @bind-Value="newMetric.Value"
-                                   class="mt-1 block w-full rounded-lg border-gray-300" />
-                        <ValidationMessage For="@(() => newMetric.Value)" />
-                        @if (!string.IsNullOrEmpty(GetNormalRange(newMetric.Type)))
-                        {
-                            <p class="mt-1 text-xs text-gray-500">
-                                Норма: @GetNormalRange(newMetric.Type)
-                            </p>
-                        }
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Заметки</label>
-                        <InputTextArea @bind-Value="newMetric.Notes"
-                                     class="mt-1 block w-full rounded-lg border-gray-300"
-                                     rows="3"
-                                     placeholder="Дополнительная информация..." />
-                    </div>
-
-                    <div class="flex justify-end space-x-3">
-                        <button type="button"
-                                @onclick="() => showAddMetricModal = false"
-                                class="px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50">
-                            Отмена
-                        </button>
-                        <button type="submit"
-                                class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
-                            Сохранить
-                        </button>
-                    </div>
-                </div>
-            </EditForm>
-        </div>
-    </div>
-}
-
 @code {
     private HealthSummary summary = new();
     private bool isLoading = true;
-    private bool showAddMetricModal = false;
-    private HealthMetricRequest newMetric = new();
-    private MetricType? selectedMetricType;
+    private string? errorMessage;
     private int filterDays = 30;
 
     protected override async Task OnInitializedAsync()
@@ -215,11 +148,13 @@
         try
         {
             isLoading = true;
-            summary = await Http.GetFromJsonAsync<HealthSummary>("api/health/summary") ?? new();
+            errorMessage = null;
+            summary = await HealthService.GetSummaryAsync();
         }
-        catch
+        catch (Exception ex)
         {
-            // Обработка ошибок
+            errorMessage = "Failed to load health data";
+            Console.WriteLine($"Error loading health data: {ex.Message}");
         }
         finally
         {
@@ -227,12 +162,133 @@
         }
     }
 
-    private List<HealthMetrics> GetMetricData(MetricType type)
+    private async Task HandleAddMetric()
     {
-        return summary.RecentMetrics
-            .Where(m => m.Type == type)
-            .OrderBy(m => m.Date)
-            .ToList();
+        try
+        {
+            isLoading = true;
+            await HealthService.AddMetricAsync(newMetric);
+            showAddMetricModal = false;
+            await LoadData();
+        }
+        catch
+        {
+            errorMessage = "Failed to add measurement";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task DeleteMetric(int id)
+    {
+        try
+        {
+            isLoading = true;
+            await HealthService.DeleteMetricAsync(id);
+            await LoadData();
+        }
+        catch
+        {
+            errorMessage = "Failed to delete measurement";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+    private string GetMetricName(MetricType type) => type switch
+    {
+        MetricType.Height => "Height",
+        MetricType.Weight => "Weight",
+        MetricType.BloodPressure => "Blood Pressure",
+        MetricType.HeartRate => "Heart Rate",
+        MetricType.Temperature => "Temperature",
+        MetricType.BloodSugar => "Blood Sugar",
+        MetricType.Oxygen => "Oxygen",
+        _ => type.ToString()
+    };
+
+    private string GetMetricIcon(MetricType type) => type switch
+    {
+        MetricType.Height => "height",
+        MetricType.Weight => "monitor_weight",
+        MetricType.BloodPressure => "favorite",
+        MetricType.HeartRate => "favorite_border",
+        MetricType.Temperature => "thermostat",
+        MetricType.BloodSugar => "water_drop",
+        MetricType.Oxygen => "air",
+        _ => "speed"
+    };
+
+    private string GetMetricUnit(MetricType type) => type switch
+    {
+        MetricType.Height => "cm",
+        MetricType.Weight => "kg",
+        MetricType.BloodPressure => "mmHg",
+        MetricType.HeartRate => "bpm",
+        MetricType.Temperature => "°C",
+        MetricType.BloodSugar => "mmol/L",
+        MetricType.Oxygen => "%",
+        _ => ""
+    };
+
+    private string GetNormalRange(MetricType type) => type switch
+    {
+        MetricType.Temperature => "36.6-37.2°C",
+        MetricType.BloodPressure => "120/80 mmHg",
+        MetricType.HeartRate => "60-100 bpm",
+        MetricType.Oxygen => "95-100%",
+        MetricType.BloodSugar => "4.0-5.4 mmol/L",
+        _ => "Individual"
+    };
+
+    private string GetMetricBadgeClass(MetricType type) => type switch
+    {
+        MetricType.Height => "bg-blue-100 text-blue-800",
+        MetricType.Weight => "bg-green-100 text-green-800",
+        MetricType.BloodPressure => "bg-red-100 text-red-800",
+        MetricType.HeartRate => "bg-purple-100 text-purple-800",
+        MetricType.Temperature => "bg-orange-100 text-orange-800",
+        MetricType.BloodSugar => "bg-yellow-100 text-yellow-800",
+        MetricType.Oxygen => "bg-indigo-100 text-indigo-800",
+        _ => "bg-gray-100 text-gray-800"
+    };
+
+    private string GetValueColorClass(HealthMetrics metric) => metric.Type switch
+    {
+        MetricType.Temperature when metric.Value > 37.5 => "text-red-600",
+        MetricType.Temperature when metric.Value < 36 => "text-blue-600",
+        MetricType.Oxygen when metric.Value < 95 => "text-red-600",
+        MetricType.BloodPressure when metric.Value > 140 => "text-red-600",
+        MetricType.BloodPressure when metric.Value < 90 => "text-blue-600",
+        _ => "text-gray-900"
+    };
+
+    private string GetValueColorClass(MetricType type)
+    {
+        var value = GetLatestValue(type);
+        if (!double.TryParse(value, out var numValue))
+            return "text-gray-900";
+
+        return type switch
+        {
+            MetricType.Temperature when numValue > 37.5 => "text-red-600",
+            MetricType.Temperature when numValue < 36 => "text-blue-600",
+            MetricType.Oxygen when numValue < 95 => "text-red-600",
+            MetricType.BloodPressure when numValue > 140 => "text-red-600",
+            MetricType.BloodPressure when numValue < 90 => "text-blue-600",
+            _ => "text-gray-900"
+        };
+    }
+
+    private string GetFilterButtonClass(int days)
+    {
+        var baseClass = "px-3 py-1 text-sm rounded-lg transition-colors";
+        return days == filterDays
+            ? $"{baseClass} bg-blue-100 text-blue-700"
+            : $"{baseClass} bg-gray-100 text-gray-700 hover:bg-gray-200";
     }
 
     private string GetLatestValue(MetricType type)
@@ -242,13 +298,7 @@
             .OrderByDescending(m => m.Date)
             .FirstOrDefault();
         
-        return metric?.Value.ToString("F1") ?? "Нет данных";
-    }
-
-    private string GetUserWeightRange()
-    {
-        // В будущем можно добавить расчет на основе роста и других параметров
-        return "Индивидуально";
+        return metric?.Value.ToString("F1") ?? "No data";
     }
 
     private string GetTrend(MetricType type)
@@ -264,7 +314,7 @@
         var first = metrics.First().Value;
         var last = metrics.Last().Value;
         var diff = last - first;
-        var threshold = first * 0.05; // 5% изменение
+        var threshold = first * 0.05; // 5% change
 
         return diff switch
         {
@@ -273,192 +323,6 @@
             _ => "stable"
         };
     }
-
-    private string GetMetricName(MetricType type) => type switch
-    {
-        MetricType.Height => "Рост",
-        MetricType.Weight => "Вес",
-        MetricType.BloodPressure => "Давление",
-        MetricType.HeartRate => "Пульс",
-        MetricType.Temperature => "Температура",
-        MetricType.BloodSugar => "Сахар крови",
-        MetricType.Oxygen => "Кислород",
-        _ => type.ToString()
-    };
-
-    private string GetMetricUnit(MetricType type) => type switch
-    {
-        MetricType.Height => "см",
-        MetricType.Weight => "кг",
-        MetricType.BloodPressure => "мм.рт.ст",
-        MetricType.HeartRate => "уд/мин",
-        MetricType.Temperature => "°C",
-        MetricType.BloodSugar => "ммоль/л",
-        MetricType.Oxygen => "%",
-        _ => ""
-    };
-
-    private string GetNormalRange(MetricType type) => type switch
-    {
-        MetricType.Temperature => "36.6°C - 37.2°C",
-        MetricType.BloodPressure => "90/60 - 120/80 мм.рт.ст.",
-        MetricType.HeartRate => "60-100 уд/мин",
-        MetricType.Oxygen => "95-100%",
-        MetricType.BloodSugar => "4.0-5.4 ммоль/л натощак",
-        _ => "Индивидуально"
-    };
-
-    private string GetMetricBadgeClass(MetricType type) => type switch
-    {
-        MetricType.Height => "bg-blue-100 text-blue-800",
-        MetricType.Weight => "bg-green-100 text-green-800",
-        MetricType.BloodPressure => "bg-red-100 text-red-800",
-        MetricType.HeartRate => "bg-purple-100 text-purple-800",
-        MetricType.Temperature => "bg-orange-100 text-orange-800",
-        MetricType.BloodSugar => "bg-yellow-100 text-yellow-800",
-        MetricType.Oxygen => "bg-indigo-100 text-indigo-800",
-        _ => "bg-gray-100 text-gray-800"
-    };
-
-    private string GetValueColorClass(HealthMetrics metric)
-    {
-        return metric.Type switch
-        {
-            MetricType.Temperature when metric.Value > 37.5 => "text-red-600",
-            MetricType.Temperature when metric.Value < 36 => "text-blue-600",
-            MetricType.Oxygen when metric.Value < 95 => "text-red-600",
-            MetricType.BloodPressure when metric.Value > 140 => "text-red-600",
-            MetricType.BloodPressure when metric.Value < 90 => "text-blue-600",
-            _ => "text-gray-900"
-        };
-    }
-
-    private string GetFilterButtonClass(int days)
-    {
-        var baseClass = "px-3 py-1 text-sm rounded-lg transition-colors";
-        return days == filterDays
-            ? $"{baseClass} bg-blue-100 text-blue-700"
-            : $"{baseClass} bg-gray-100 text-gray-700 hover:bg-gray-200";
-    }
-
-    private List<HealthMetrics> GetFilteredMetrics()
-    {
-        var cutoffDate = DateTime.UtcNow.AddDays(-filterDays);
-        return summary.RecentMetrics
-            .Where(m => m.Date >= cutoffDate)
-            .OrderByDescending(m => m.Date)
-            .ToList();
-    }
-
-    private void ShowAddMetricModal()
-    {
-        newMetric = new HealthMetricRequest();
-        showAddMetricModal = true;
-    }
-
-    private async Task HandleAddMetric()
-    {
-        try
-        {
-            var response = await Http.PostAsJsonAsync("api/health", newMetric);
-            if (response.IsSuccessStatusCode)
-            {
-                showAddMetricModal = false;
-                await LoadData();
-            }
-        }
-        catch
-        {
-            // Обработка ошибок
-        }
-    }
-
-    private void ShowMetricDetails(MetricType type)
-    {
-        selectedMetricType = type;
-    }
-
-    private string GetAverageValue(MetricType type)
-    {
-        var metrics = GetMetricData(type);
-        if (!metrics.Any()) return "Нет данных";
-        
-        return metrics.Average(m => m.Value).ToString("F1");
-    }
-
-    private string GetMinValue(MetricType type)
-    {
-        var metrics = GetMetricData(type);
-        if (!metrics.Any()) return "Нет данных";
-        
-        return metrics.Min(m => m.Value).ToString("F1");
-    }
-
-    private string GetMaxValue(MetricType type)
-    {
-        var metrics = GetMetricData(type);
-        if (!metrics.Any()) return "Нет данных";
-        
-        return metrics.Max(m => m.Value).ToString("F1");
-    }
-
-    private string GetMetricCount(MetricType type)
-    {
-        return GetMetricData(type).Count.ToString();
-    }
-
-    private async Task DeleteMetric(int id)
-    {
-        try
-        {
-            var response = await Http.DeleteAsync($"api/health/{id}");
-            if (response.IsSuccessStatusCode)
-            {
-                await LoadData();
-            }
-        }
-        catch
-        {
-            // Обработка ошибок
-        }
-    }
-
-    private async Task ExportData()
-    {
-        try
-        {
-            var metrics = summary.RecentMetrics;
-            var csv = new StringBuilder();
-            
-            // Заголовки
-            csv.AppendLine("Дата,Показатель,Значение,Единица измерения,Заметки");
-            
-            // Данные
-            foreach (var metric in metrics)
-            {
-                csv.AppendLine($"{metric.Date:g},{GetMetricName(metric.Type)},{metric.Value},{metric.Unit},{metric.Notes}");
-            }
-
-            var bytes = Encoding.UTF8.GetBytes(csv.ToString());
-            var base64 = Convert.ToBase64String(bytes);
-            await JS.InvokeVoidAsync("downloadFile", "health_metrics.csv", base64);
-        }
-        catch
-        {
-            // Обработка ошибок экспорта
-        }
-    }
-    private string GetMetricIcon(MetricType type) => type switch
-    {
-        MetricType.Height => "height",
-        MetricType.Weight => "monitor_weight",
-        MetricType.BloodPressure => "favorite",
-        MetricType.HeartRate => "favorite_border",
-        MetricType.Temperature => "thermostat",
-        MetricType.BloodSugar => "water_drop",
-        MetricType.Oxygen => "air",
-        _ => "speed"
-    };
 
     private string GetTrendColor(string trend) => trend switch
     {
@@ -476,26 +340,49 @@
 
     private string GetTrendText(string trend) => trend switch
     {
-        "up" => "Повышение",
-        "down" => "Понижение",
-        _ => "Стабильно"
+        "up" => "Increasing",
+        "down" => "Decreasing",
+        _ => "Stable"
     };
 
-    // Исправим метод GetValueColorClass для работы с типом
-    private string GetValueColorClass(MetricType type)
+    private List<HealthMetrics> GetFilteredMetrics()
     {
-        var value = GetLatestValue(type);
-        if (!double.TryParse(value, out var numValue))
-            return "text-gray-900";
-
-        return type switch
-        {
-            MetricType.Temperature when numValue > 37.5 => "text-red-600",
-            MetricType.Temperature when numValue < 36 => "text-blue-600",
-            MetricType.Oxygen when numValue < 95 => "text-red-600",
-            MetricType.BloodPressure when numValue > 140 => "text-red-600",
-            MetricType.BloodPressure when numValue < 90 => "text-blue-600",
-            _ => "text-gray-900"
-        };
+        var cutoffDate = DateTime.UtcNow.AddDays(-filterDays);
+        return summary.RecentMetrics
+            .Where(m => m.Date >= cutoffDate)
+            .OrderByDescending(m => m.Date)
+            .ToList();
     }
+
+    private async Task ExportData()
+    {
+        try
+        {
+            var csv = new StringBuilder();
+            csv.AppendLine("Date,Metric,Value,Unit,Notes");
+            
+            foreach (var metric in summary.RecentMetrics)
+            {
+                csv.AppendLine($"{metric.Date:g},{GetMetricName(metric.Type)},{metric.Value},{metric.Unit},{metric.Notes}");
+            }
+
+            var bytes = Encoding.UTF8.GetBytes(csv.ToString());
+            var base64 = Convert.ToBase64String(bytes);
+            await JS.InvokeVoidAsync("downloadFile", "health_metrics.csv", base64);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Failed to export data";
+            Console.WriteLine($"Export error: {ex.Message}");
+        }
+    }
+
+    private void ShowAddMetricModal()
+    {
+        newMetric = new HealthMetricRequest();
+        showAddMetricModal = true;
+    }
+
+    private HealthMetricRequest newMetric = new();
+    private bool showAddMetricModal;
 }

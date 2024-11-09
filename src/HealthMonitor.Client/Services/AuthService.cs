@@ -10,15 +10,20 @@ public class AuthService : IAuthService
     private readonly HttpClient _httpClient;
     private readonly AuthenticationStateProvider _authStateProvider;
     private readonly NavigationManager _navigationManager;
+    private readonly ILocalStorageService _localStorage;
+    private const string TOKEN_KEY = "auth_token";
+    private string? _cachedToken;
 
     public AuthService(
         HttpClient httpClient, 
         AuthenticationStateProvider authStateProvider,
-        NavigationManager navigationManager)
+        NavigationManager navigationManager,
+        ILocalStorageService localStorage)
     {
         _httpClient = httpClient;
         _authStateProvider = authStateProvider;
         _navigationManager = navigationManager;
+        _localStorage = localStorage;
     }
 
     public async Task<bool> LoginAsync(string email, string password)
@@ -32,14 +37,15 @@ public class AuthService : IAuthService
                 var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
                 if (result?.Token != null)
                 {
-                    ((CustomAuthStateProvider)_authStateProvider).NotifyUserAuthentication(result.Token);
+                    await SetTokenAsync(result.Token);
                     return true;
                 }
             }
             return false;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"Login error: {ex.Message}");
             return false;
         }
     }
@@ -55,14 +61,15 @@ public class AuthService : IAuthService
                 var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
                 if (result?.Token != null)
                 {
-                    ((CustomAuthStateProvider)_authStateProvider).NotifyUserAuthentication(result.Token);
+                    await SetTokenAsync(result.Token);
                     return true;
                 }
             }
             return false;
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"Registration error: {ex.Message}");
             return false;
         }
     }
@@ -71,12 +78,62 @@ public class AuthService : IAuthService
     {
         try
         {
+            // Clear token from storage
+            await _localStorage.RemoveItemAsync(TOKEN_KEY);
+            _cachedToken = null;
+
+            // Clear authentication state
             ((CustomAuthStateProvider)_authStateProvider).NotifyUserLogout();
+            
+            // Clear authorization header
+            _httpClient.DefaultRequestHeaders.Authorization = null;
+            
+            // Wait for any pending state changes
+            await Task.Yield();
+            
+            // Navigate to login
             _navigationManager.NavigateTo("/login", true);
         }
-        catch
+        catch (Exception ex)
         {
-            // Обработка ошибок
+            Console.WriteLine($"Logout error: {ex.Message}");
+            throw;
         }
     }
+
+    public async Task<string?> GetTokenAsync()
+    {
+        if (_cachedToken != null)
+            return _cachedToken;
+
+        _cachedToken = await _localStorage.GetItemAsync<string>(TOKEN_KEY);
+        return _cachedToken;
+    }
+
+    private async Task SetTokenAsync(string token)
+    {
+        _cachedToken = token;
+        await _localStorage.SetItemAsync(TOKEN_KEY, token);
+        ((CustomAuthStateProvider)_authStateProvider).NotifyUserAuthentication(token);
+        _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+    }
+
+    public async Task InitializeAuthenticationStateAsync()
+    {
+        var token = await GetTokenAsync();
+        if (!string.IsNullOrEmpty(token))
+        {
+            _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+            ((CustomAuthStateProvider)_authStateProvider).NotifyUserAuthentication(token);
+        }
+    }
+}
+
+public interface IAuthService
+{
+    Task<bool> LoginAsync(string email, string password);
+    Task<bool> RegisterAsync(RegisterRequest request);
+    Task LogoutAsync();
+    Task<string?> GetTokenAsync();
+    Task InitializeAuthenticationStateAsync();
 }

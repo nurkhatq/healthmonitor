@@ -17,7 +17,6 @@ D:\csharp\src\HealthMonitor.Server\bin\Debug\net8.0\Azure.Identity.dll
 D:\csharp\src\HealthMonitor.Server\bin\Debug\net8.0\BCrypt.Net-Next.dll
 D:\csharp\src\HealthMonitor.Server\bin\Debug\net8.0\Humanizer.dll
 D:\csharp\src\HealthMonitor.Server\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
-D:\csharp\src\HealthMonitor.Server\bin\Debug\net8.0\Microsoft.AspNetCore.OpenApi.dll
 D:\csharp\src\HealthMonitor.Server\bin\Debug\net8.0\Microsoft.Bcl.AsyncInterfaces.dll
 D:\csharp\src\HealthMonitor.Server\bin\Debug\net8.0\Microsoft.CodeAnalysis.dll
 D:\csharp\src\HealthMonitor.Server\bin\Debug\net8.0\Microsoft.CodeAnalysis.CSharp.dll

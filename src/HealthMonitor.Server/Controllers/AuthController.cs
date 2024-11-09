@@ -1,9 +1,9 @@
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using HealthMonitor.Server.Data;
 using HealthMonitor.Server.Services;
 using HealthMonitor.Shared.Models;
 using HealthMonitor.Shared.Models.DTOs.Auth;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace HealthMonitor.Server.Controllers;
 

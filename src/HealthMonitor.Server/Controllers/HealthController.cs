@@ -23,7 +23,9 @@ public class HealthController : ControllerBase
     [HttpGet("summary")]
     public async Task<ActionResult<HealthSummary>> GetSummary()
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+            ?? throw new UnauthorizedAccessException());
+
         var lastMonth = DateTime.UtcNow.AddMonths(-1);
 
         var metrics = await _context.HealthMetrics
@@ -43,7 +45,7 @@ public class HealthController : ControllerBase
                         Average = g.Average(m => m.Value),
                         Min = g.Min(m => m.Value),
                         Max = g.Max(m => m.Value),
-                        Unit = g.FirstOrDefault()?.Unit,
+                        Unit = GetUnitForMetricType(g.Key),
                         Trend = DetermineTrend(g.OrderBy(m => m.Date).Select(m => m.Value).ToList())
                     }
                 )
@@ -55,7 +57,8 @@ public class HealthController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<HealthMetrics>> AddMetric(HealthMetricRequest request)
     {
-        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value!);
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+            ?? throw new UnauthorizedAccessException());
 
         var metric = new HealthMetrics
         {
@@ -73,14 +76,34 @@ public class HealthController : ControllerBase
         return metric;
     }
 
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteMetric(int id)
+    {
+        var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value 
+            ?? throw new UnauthorizedAccessException());
+
+        var metric = await _context.HealthMetrics.FindAsync(id);
+
+        if (metric == null)
+            return NotFound();
+
+        if (metric.UserId != userId)
+            return Unauthorized();
+
+        _context.HealthMetrics.Remove(metric);
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
     private string GetUnitForMetricType(MetricType type) => type switch
     {
-        MetricType.Height => "см",
-        MetricType.Weight => "кг",
-        MetricType.BloodPressure => "мм.рт.ст",
-        MetricType.HeartRate => "уд/мин",
+        MetricType.Height => "cm",
+        MetricType.Weight => "kg",
+        MetricType.BloodPressure => "mmHg",
+        MetricType.HeartRate => "bpm",
         MetricType.Temperature => "°C",
-        MetricType.BloodSugar => "ммоль/л",
+        MetricType.BloodSugar => "mmol/L",
         MetricType.Oxygen => "%",
         _ => ""
     };

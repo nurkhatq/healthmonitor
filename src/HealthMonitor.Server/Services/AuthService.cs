@@ -1,9 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using HealthMonitor.Shared.Models;
-using HealthMonitor.Shared.Models.DTOs.Auth;
 using Microsoft.IdentityModel.Tokens;
+using HealthMonitor.Shared.Models;
+using BCrypt.Net;
 
 namespace HealthMonitor.Server.Services;
 
