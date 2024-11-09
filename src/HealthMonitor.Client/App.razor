@@ -14,8 +14,15 @@
                         <p>You are not authorized to access this resource.</p>
                     }
                 </NotAuthorized>
+                <Authorizing>
+                    <div class="fixed inset-0 bg-gray-50 flex items-center justify-center">
+                        <div class="text-center">
+                            <div class="animate-spin rounded-full h-16 w-16 border-4 border-blue-100 border-t-blue-600 mb-4"></div>
+                            <p class="text-gray-600">Loading...</p>
+                        </div>
+                    </div>
+                </Authorizing>
             </AuthorizeRouteView>
-            <FocusOnNavigate RouteData="@routeData" Selector="h1" />
         </Found>
         <NotFound>
             <PageTitle>Not found</PageTitle>
@@ -29,7 +36,13 @@
 @code {
     protected override async Task OnInitializedAsync()
     {
-        await AuthService.InitializeAuthenticationStateAsync();
-        await base.OnInitializedAsync();
+        try
+        {
+            await AuthService.InitializeAuthenticationStateAsync();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error initializing auth state: {ex.Message}");
+        }
     }
 }

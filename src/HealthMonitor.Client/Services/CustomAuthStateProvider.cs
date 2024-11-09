@@ -8,7 +8,7 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
 {
     private readonly ILocalStorageService _localStorage;
     private readonly HttpClient _httpClient;
-    private const string TOKEN_KEY = "authToken";
+    private const string TOKEN_KEY = "auth_token";
 
     public CustomAuthStateProvider(ILocalStorageService localStorage, HttpClient httpClient)
     {
@@ -18,34 +18,64 @@ public class CustomAuthStateProvider : AuthenticationStateProvider
 
     public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        var token = await _localStorage.GetItemAsync<string>(TOKEN_KEY);
-
-        if (string.IsNullOrEmpty(token))
+        try
         {
+            var token = await _localStorage.GetItemAsync<string>(TOKEN_KEY);
+            
+            if (string.IsNullOrEmpty(token))
+            {
+                Console.WriteLine("No token found, returning unauthenticated state");
+                return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+            }
+
+            _httpClient.DefaultRequestHeaders.Authorization = 
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var claims = ParseClaimsFromToken(token);
+            var identity = new ClaimsIdentity(claims, "jwt");
+            var user = new ClaimsPrincipal(identity);
+
+            Console.WriteLine("Token found, returning authenticated state");
+            return new AuthenticationState(user);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in GetAuthenticationStateAsync: {ex.Message}");
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
         }
-
-        _httpClient.DefaultRequestHeaders.Authorization = 
-            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-        return new AuthenticationState(
-            new ClaimsPrincipal(
-                new ClaimsIdentity(ParseClaimsFromToken(token), "jwt")));
     }
 
     public void NotifyUserAuthentication(string token)
     {
-        var authenticatedUser = new ClaimsPrincipal(
-            new ClaimsIdentity(ParseClaimsFromToken(token), "jwt"));
-        var authState = Task.FromResult(new AuthenticationState(authenticatedUser));
-        NotifyAuthenticationStateChanged(authState);
+        try
+        {
+            var claims = ParseClaimsFromToken(token);
+            var identity = new ClaimsIdentity(claims, "jwt");
+            var user = new ClaimsPrincipal(identity);
+
+            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
+            Console.WriteLine("User authentication notified");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in NotifyUserAuthentication: {ex.Message}");
+        }
     }
 
     public void NotifyUserLogout()
     {
-        var anonymousUser = new ClaimsPrincipal(new ClaimsIdentity());
-        var authState = Task.FromResult(new AuthenticationState(anonymousUser));
-        NotifyAuthenticationStateChanged(authState);
+        try
+        {
+            var identity = new ClaimsIdentity();
+            var user = new ClaimsPrincipal(identity);
+
+            NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
+            Console.WriteLine("User logout notified");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in NotifyUserLogout: {ex.Message}");
+        }
     }
 
     private IEnumerable<Claim> ParseClaimsFromToken(string token)

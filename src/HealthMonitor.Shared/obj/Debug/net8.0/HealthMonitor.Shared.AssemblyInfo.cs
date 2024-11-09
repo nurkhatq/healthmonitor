@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("HealthMonitor.Shared")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+12a1231bda7c5e93e3c16733c506971f386a57e1")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+da93dfce0ab1a1a2b387f838d227ac4f02fd9625")]
 [assembly: System.Reflection.AssemblyProductAttribute("HealthMonitor.Shared")]
 [assembly: System.Reflection.AssemblyTitleAttribute("HealthMonitor.Shared")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
